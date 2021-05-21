@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{3ef1f0bb-eeb5-452b-b98a-98aaefa9a703}</ProjectGuid>
+    <ProjectGuid>{b43ce93f-f256-49c8-88d2-dc34cb3d3155}</ProjectGuid>
     <RootNamespace>프로세서연결하기</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -139,8 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="소스.cpp" />
-    <ClCompile Include="소스1.cpp" />
+    <ClCompile Include="프로세서 연결하기.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

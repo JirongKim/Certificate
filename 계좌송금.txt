@@ -1,0 +1,68 @@
+void openAccount(int mtime, char mName[16], char mGroup[16], int mNumber, int mValue) // 계좌를 개설함
+// Group에 Name의 이름을 가진 사람이 Number의 계좌를 생성. 잔액은 Value
+
+int closeAccount(int mtime, int mNumber) // 계좌를 폐지함, 폐지한 계좌의 잔액을 Return
+
+int SendByNumber(int mtime, int mNumber, int mReceiveNumber, int mValue) // number계좌에서, receiveNumber계좌로 Value만큼 송금함.
+// 만약 보내거나 받는 계좌가 없거나, 보내는 계좌에 Value보다 돈이 적다면 -1을 return
+
+int SendByName(int mtime, int mNumber, char mName[16], int mValue) // number계좌에서, Name의 이름을 가진 사람의 계좌로 Value만큼 송금함.
+// 계좌가 여러개라면, 가장 최근에 계좌 변동이 있었던 사람이 받음.
+// 만약 최근에 계좌 변동이 있었던 사람이 2명이라면, 송금을 받은 사람이 받음.
+
+void SendBonus(int mtime, char mGroup[16], mValue) // Group의 사람에게, Value만큼의 돈을 줌
+// 한사람이 계좌가 여러개라면, 가장 최근에 계좌 변동이 있었던 사람이 받음.
+// 만약 최근에 계좌 변동이 있었던 사람이 2명이라면, 송금을 받은 사람이 받음.
+
+Name, Group : 4개의 영어 소문자 이하
+Number : 100,000 이하
+Value : 1000 이하
+
+openAccount(1, "lee", "hr", 20, 200);
+openAccount(2, "kim", "hr", 21, 210);
+openAccount(3, "kim", "dev", 11, 110);
+openAccount(4, "kim", "dev", 12, 120);
+openAccount(5, "kim", "hr", 22, 220);
+closeAccount(6, 22);
+SendByNumber(7, 22, 20, 10);
+openAccount(8, "kim", "hr", 23, 230);
+SendByNumber(9, 20, 11, 300);
+SendBonus(10, "dev", 100);
+SendByName(11, 21, "kim", 50);
+SendByName(12, 20, "kim", 50);
+closeAccount(13, 12);
+SendByName(14, 20, "kim", 40);
+SendBonus(15, "hr", 30);
+SendByNumber(16, 20, 23, 11);
+SendByName(17, 20, "kim", 10);
+
+hr lee 20 119
+hr kim 21 230
+dev kim 11 110
+hr kim 23 251
+
+
+내가 푼 방법
+struct account {
+	int time;
+	int asset;
+	int statue;
+	account* prev;
+} a[100000];
+
+NODE* myalloc(int Number){
+	return &a[Number];
+}
+
+account* hashTable[10000][10000];
+
+
+void openAccount(int mtime, char mName[16], char mGroup[16], int mNumber, int mValue){
+	account* p = myalloc(mNumber);
+	if(hashTable[hash(mGroup)][hash(mName)] != 0) // hash가 처음이 아닐경우
+	{
+		p->prev = hashTable[hash(mGroup)][hash(mName)];
+	}
+	hashTable[hash(mGroup)][hash(mName)] = p;
+	p->statue = 1;
+}

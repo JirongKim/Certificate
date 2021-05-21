@@ -1,0 +1,4 @@
+﻿  hash.c
+C:\Users\jh\Desktop\프로\hash\hash\hash\hash.c(19,26): error C2143: 구문 오류: ']'이(가) ';' 앞에 없습니다.
+C:\Users\jh\Desktop\프로\hash\hash\hash\hash.c(19,29): error C2059: 구문 오류: ']'
+C:\Users\jh\Desktop\프로\hash\hash\hash\hash.c(28,1): warning C4133: '초기화 중': 'int *'과(와) 'node *' 사이의 형식이 호환되지 않습니다.

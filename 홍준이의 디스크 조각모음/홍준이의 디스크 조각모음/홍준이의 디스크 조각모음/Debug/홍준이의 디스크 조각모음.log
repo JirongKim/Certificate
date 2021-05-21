@@ -1,0 +1,3 @@
+﻿  홍준이의 디스크 조각모음.cpp
+C:\Users\jh\Desktop\프로\홍준이의 디스크 조각모음\홍준이의 디스크 조각모음\홍준이의 디스크 조각모음\홍준이의 디스크 조각모음.cpp(165,9): warning C4477: 'printf' : 서식 문자열 '%f'에 'double' 형식의 인수가 필요하지만 variadic 인수 1의 형식이 'time_t'입니다.
+  홍준이의 디스크 조각모음.vcxproj -> C:\Users\jh\Desktop\프로\홍준이의 디스크 조각모음\홍준이의 디스크 조각모음\Debug\홍준이의 디스크 조각모음.exe
