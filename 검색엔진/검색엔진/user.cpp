@@ -1,229 +1,202 @@
-#include <stdio.h>
+#define MAX_PAGE 50000
+#define MAX_TABLE 20001
+#define rint register int
 
 #define NULL 0
 #define nullptr 0
-#define MAX_N 50001
-#define MAX_LENGTH 11
-#define MAX_WORD 10001
-#define MAX_TABLE 100007
 
-long long hashKey(const char* str)
+struct WORD;
+
+struct PAGE
 {
-	long long hash = 0;
-	for (int i = 0; str[i] != '\0'; i++)
-	{
-		hash = (hash << 5) + str[i];
-	}
-	return hash;
-}
+	int id;
+	int m;
+	bool removed;
+	WORD* word[4];
+} page[MAX_PAGE];
 
-unsigned long hash(long long temp)
-{
-	return temp % MAX_TABLE;
-}
-
-struct SCHKEY
+struct WORD
 {
 	long long key;
-	int id;
-	SCHKEY* prev;
-} a[MAX_N * 4];
+	bool blocked;
+	PAGE* page;
+	WORD* prev;
+} a[MAX_PAGE];
+
 int arr_idx = 0;
-SCHKEY* myalloc(void) { return &a[arr_idx++]; }
-
-SCHKEY* hashTable[MAX_TABLE];
-
-long long id[MAX_N][4];
-
-
-struct BLOCK
+WORD* myalloc(void)
 {
-	long long key;
-	bool* isBlock;
-	int id;
-	BLOCK* prev;
-} b[MAX_N * 4 * 4];
-int arr_ibx = 0;
-BLOCK* myalloc_block(void) { return &b[arr_ibx++]; }
+	a[arr_idx].key = 0;
+	a[arr_idx].blocked = 0;
+	a[arr_idx].page = nullptr;
+	a[arr_idx].prev = nullptr;
+	return &a[arr_idx++];
+}
 
-BLOCK* blockTable[MAX_TABLE];
+WORD* wt[MAX_TABLE];
 
-bool blockEnable[MAX_TABLE];
+WORD* findWord(long long k)
+{
+	int key = (int)(k % MAX_TABLE);
+	for (WORD* pp = wt[key]; pp != NULL; pp = pp->prev)
+	{
+		if (pp->key == k)
+		{
+			return pp;
+		}
+	}
+	return nullptr;
+}
+
+long long strToLL(char* str)
+{
+	long long ret = 0;
+	for (rint i = 0; str[i] != '\0'; i++)
+	{
+		ret = (ret << 5) + str[i] - 'a' + 1;
+	}
+	return ret;
+}
+
+int searchCount[MAX_PAGE] = { 0, };
+int searchCountNum = 0;
 
 void init(int n) {
 	arr_idx = 0;
-	arr_ibx = 0;
-	for (int i = 0; i < MAX_TABLE; i++)
+	for (rint i = 0; i < MAX_PAGE; i++)
 	{
-		hashTable[i] = nullptr;
-		blockTable[i] = nullptr;
-		blockEnable[i] = 0;
+		page[i].id = page[i].m = page[i].removed = 0;
+		page[i].word[0] = page[i].word[1] = page[i].word[2] = page[i].word[3] = nullptr;
 	}
-	for (int i = 0; i < n; i++)
+	
+	for (rint i = 0; i < MAX_TABLE; i++)
 	{
-		id[i][0] = id[i][1] = id[i][2] = id[i][3] = 0;
+		wt[i] = nullptr;
 	}
 }
 
 void addPage(int mId, int m, char word[][11]) {
-	for (int i = 0; i < m; i++)
+	page[mId].id = mId;
+	page[mId].m = m;
+	
+	for (rint i = 0; i < m; i++)
 	{
-		int key = (int)hash(hashKey(word[i]));
+		long long temp = strToLL(word[i]);
+		int key = (int)(temp % MAX_TABLE);
 
-		id[mId][i] = hashKey(word[i]);
-		SCHKEY* newSCH = myalloc();
-		newSCH->key = hashKey(word[i]);
-		newSCH->id = mId;
-		newSCH->prev = hashTable[key];
-		hashTable[key] = newSCH;
-
-		for (int j = 0; j < m; j++)
-		{
-			if (j == i) { continue; }
-			BLOCK* newBLK = myalloc_block();
-			newBLK->id = mId;
-			newBLK->isBlock = &blockEnable[key];
-			newBLK->prev = blockTable[key];
-			blockTable[key] = newBLK;
-		}
+		WORD* wd = myalloc();
+		wd->key = temp;
+		wd->page = &page[mId];
+		wd->prev = wt[key];
+		wt[key] = wd;
+		page[mId].word[i] = wd;
 	}
 }
 
 void removePage(int mId) {
-	for (int i = 0; id[mId][i] != 0; i++)
-	{
-		int key = (int)hash(id[mId][i]);
-		SCHKEY* del = NULL;
-		for (SCHKEY* pp = hashTable[key]; pp != NULL; del = pp, pp = pp->prev)
-		{
-			if (pp->key == id[mId][i])
-			{
-				if (del) // del이 NULL이 아니면?
-				{
-					del = pp->prev; // del과 다음거를 이어줌.
-				}
-				else // del이 NULL이면?
-				{
-					hashTable[key] = pp->prev; // 다음거랑 맨 앞을 이어줌.
-				}
-			}
-		}
-		id[mId][i] = 0;
-	}
+	page[mId].removed = 0;
 }
 
 void blockWord(char word[]) {
-	int key = (int)hash(hashKey(word));
-	for (SCHKEY* pp = hashTable[key]; pp != NULL; pp = pp->prev)
+	WORD* wd = findWord(strToLL(word));
+	if (wd)
 	{
-		if (pp->key == hashKey(word))
-		{
-			int temp = hash(hashKey(word));
-			blockEnable[temp] = 1;
-		}
+		wd->blocked = 1;
+	}
+	else
+	{
+		wd = myalloc();
+		wd->key = strToLL(word);
+		wd->prev = wt[(int)(strToLL(word) % MAX_TABLE)];
+		wd->page = &page[0];
+		wt[(int)(strToLL(word) % MAX_TABLE)] = wd;
 	}
 }
 
 void recoverWord(char word[]) {
-	int key = (int)hash(hashKey(word));
-	for (SCHKEY* pp = hashTable[key]; pp != NULL; pp = pp->prev)
+	WORD* wd = findWord(strToLL(word));
+	wd->blocked = 0;
+}
+
+bool isBlockOrRemoved(PAGE* c)
+{
+	if (c->removed) { return 0; }
+	for (rint i = 0; i < c->m; i++)
 	{
-		if (pp->key == hashKey(word))
+		if (c->word[i]->blocked == 1)
 		{
-			int temp = hash(hashKey(word));
-			blockEnable[temp] = 0;
+			return 0;
 		}
 	}
+	return 1;
 }
 
 int search(char word[2][11], int mode) {
+	searchCountNum++;
 	int cnt = 0;
+
 	if (mode == 0)
 	{
-		//printf("%s\n", word[0]);
-		int key = (int)hash(hashKey(word[0]));
-		for (SCHKEY* pp = hashTable[key]; pp != NULL; pp = pp->prev)
+		WORD* wd = findWord(strToLL(word[0]));
+		if (!wd) { return 0; }
+
+		for (WORD* pp = wd; pp != NULL; pp = pp->prev)
 		{
-			if (pp->key == hashKey(word[0]))
+			if (isBlockOrRemoved(pp->page))
 			{
-				int temp = hash(hashKey(word[0]));
-				int flag = 0;
-				for (BLOCK* ppp = blockTable[temp]; ppp != NULL; ppp = ppp->prev)
-				{
-					if (ppp->id == pp->id) { flag = 1; break; }
-				}
-				if (flag == 1) { continue; }
 				cnt++;
 			}
 		}
 	}
 	else
 	{
-		//printf("%s\n", word[0]);
-		//printf("%s\n", word[1]);
-		long long temp1[100];
-		long long temp2[100];
-		int cnt1 = 0;
-		int cnt2 = 0;
-
-		int key = (int)hash(hashKey(word[0]));
-		for (SCHKEY* pp = hashTable[key]; pp != NULL; pp = pp->prev)
-		{
-			if (pp->key == hashKey(word[0]))
-			{
-				int temp = hash(hashKey(word[0]));
-				int flag = 0;
-				for (BLOCK* ppp = blockTable[temp]; ppp != NULL; ppp = ppp->prev)
-				{
-					if (ppp->id == pp->id) { flag = 1; break; }
-				}
-				if (flag == 1) { continue; }
-				temp1[cnt1++] = pp->id;
-			}
-		}
-
-		key = (int)hash(hashKey(word[1]));
-		for (SCHKEY* pp = hashTable[key]; pp != NULL; pp = pp->prev)
-		{
-			if (pp->key == hashKey(word[1]))
-			{
-				int temp = hash(hashKey(word[0]));
-				int flag = 0;
-				for (BLOCK* ppp = blockTable[temp]; ppp != NULL; ppp = ppp->prev)
-				{
-					if (ppp->id == pp->id) { flag = 1; break; }
-				}
-				if (flag == 1) { continue; }
-				temp2[cnt2++] = pp->id;
-			}
-		}
-
 		if (mode == 1) // and 연산
 		{
-			for (int i = 0; i < cnt1; i++)
+			WORD* wd1 = findWord(strToLL(word[0]));
+			WORD* wd2 = findWord(strToLL(word[1]));
+			if (!wd1) { return 0; }
+
+			for (WORD* pp = wd1; pp != NULL; pp = pp->prev)
 			{
-				for (int j = 0; j < cnt2; j++)
+				if (isBlockOrRemoved(pp->page))
 				{
-					if (temp1[i] == temp2[j]) {
-						cnt++;
-					}
+					searchCount[pp->page->id] = searchCountNum;
 				}
 			}
-		}
-		else // or연산
-		{
-			cnt = cnt1 + cnt2;
-			for (int i = 0; i < cnt1; i++)
+			if (!wd2) { return 0; }
+
+			for (WORD* pp = wd2; pp != NULL; pp = pp->prev)
 			{
-				for (int j = 0; j < cnt2; j++)
+				if (searchCount[pp->page->id] == searchCountNum)
 				{
-					if (temp1[i] == temp2[j]) {
-						cnt--;
-					}
+					cnt++;
+				}
+			}
+
+		}
+		else //mode = 2, or연산
+		{
+			WORD* wd1 = findWord(strToLL(word[0]));
+			WORD* wd2 = findWord(strToLL(word[1]));
+			if (!wd1 && !wd2) { return 0; }
+
+			for (WORD* pp = wd1; pp != NULL; pp = pp->prev)
+			{
+				if (isBlockOrRemoved(pp->page))
+				{
+					searchCount[pp->page->id] = searchCountNum;
+					cnt++;
+				}
+			}
+
+			for (WORD* pp = wd2; pp != NULL; pp = pp->prev)
+			{
+				if (isBlockOrRemoved(pp->page) && searchCount[pp->page->id] != searchCountNum)
+				{
+					cnt++;
 				}
 			}
 		}
 	}
-	//printf("cnt : %d\n", cnt);
 	return cnt;
 }
