@@ -1,3 +1,5 @@
+ï»¿#include <stdio.h>
+
 #define MAX_PAGE 50000
 #define MAX_TABLE 20001
 #define rint register int
@@ -15,37 +17,59 @@ struct PAGE
 	WORD* word[4];
 } page[MAX_PAGE];
 
-struct WORD
+struct NODE
 {
-	long long key;
-	bool blocked;
-	PAGE* page;
-	WORD* prev;
-} a[MAX_PAGE];
+	int id;
+	NODE* prev;
+} a[MAX_PAGE * 4];
 
 int arr_idx = 0;
-WORD* myalloc(void)
+NODE* myalloc(void)
 {
-	a[arr_idx].key = 0;
-	a[arr_idx].blocked = 0;
-	a[arr_idx].page = nullptr;
+	a[arr_idx].id = 0;
 	a[arr_idx].prev = nullptr;
 	return &a[arr_idx++];
 }
 
-WORD* wt[MAX_TABLE];
+struct WORD
+{
+	long long w;
+	bool blocked;
+	NODE* head;
+} wd[MAX_PAGE];
+
+WORD wt[MAX_TABLE];
+
+WORD* addWord(long long k)
+{
+	int key = (int)(k % MAX_TABLE);
+	while (wt[key].w != k)
+	{
+		if (wt[key].w == 0)
+		{
+			wt[key].w = k;
+			break;
+		}
+		key = (key + 1) % MAX_TABLE;
+	}
+	return &wt[key];
+}
 
 WORD* findWord(long long k)
 {
 	int key = (int)(k % MAX_TABLE);
-	for (WORD* pp = wt[key]; pp != NULL; pp = pp->prev)
+	//int cnt = MAX_TABLE;
+
+	//while (wt[key].w != k && cnt--)
+	while (wt[key].w != k)
 	{
-		if (pp->key == k)
+		if (wt[key].w == 0)
 		{
-			return pp;
+			return NULL;
 		}
+		key = (key + 1) % MAX_TABLE;
 	}
-	return nullptr;
+	return &wt[key];
 }
 
 long long strToLL(char* str)
@@ -66,51 +90,48 @@ void init(int n) {
 	for (rint i = 0; i < MAX_PAGE; i++)
 	{
 		page[i].id = page[i].m = page[i].removed = 0;
-		page[i].word[0] = page[i].word[1] = page[i].word[2] = page[i].word[3] = nullptr;
+		page[i].word[0] = page[i].word[1] = page[i].word[2] = page[i].word[3] = NULL;
+		wd[i].blocked = wd[i].w = 0;
+		wd[i].head = NULL;
 	}
-	
+
 	for (rint i = 0; i < MAX_TABLE; i++)
 	{
-		wt[i] = nullptr;
+		wt[i].blocked = 0;
+		wt[i].w = 0;
+		wt[i].head = nullptr;
 	}
 }
 
 void addPage(int mId, int m, char word[][11]) {
 	page[mId].id = mId;
 	page[mId].m = m;
-	
+	page[mId].removed = 0;
+
 	for (rint i = 0; i < m; i++)
 	{
 		long long temp = strToLL(word[i]);
-		int key = (int)(temp % MAX_TABLE);
+		if (temp == 19133893899)
+		{
+		}
 
-		WORD* wd = myalloc();
-		wd->key = temp;
-		wd->page = &page[mId];
-		wd->prev = wt[key];
-		wt[key] = wd;
+		WORD* wd = addWord(temp);
 		page[mId].word[i] = wd;
+
+		NODE* newNode = myalloc();
+		newNode->id = mId;
+		newNode->prev = wd->head;
+		wd->head = newNode;
 	}
 }
 
 void removePage(int mId) {
-	page[mId].removed = 0;
+	page[mId].removed = 1;
 }
 
 void blockWord(char word[]) {
-	WORD* wd = findWord(strToLL(word));
-	if (wd)
-	{
-		wd->blocked = 1;
-	}
-	else
-	{
-		wd = myalloc();
-		wd->key = strToLL(word);
-		wd->prev = wt[(int)(strToLL(word) % MAX_TABLE)];
-		wd->page = &page[0];
-		wt[(int)(strToLL(word) % MAX_TABLE)] = wd;
-	}
+	WORD* wd = addWord(strToLL(word));
+	wd->blocked = 1;
 }
 
 void recoverWord(char word[]) {
@@ -118,12 +139,12 @@ void recoverWord(char word[]) {
 	wd->blocked = 0;
 }
 
-bool isBlockOrRemoved(PAGE* c)
+bool isBlockOrRemoved(int id)
 {
-	if (c->removed) { return 0; }
-	for (rint i = 0; i < c->m; i++)
+	if (page[id].removed) { return 0; }
+	for (rint i = 0; i < page[id].m; i++)
 	{
-		if (c->word[i]->blocked == 1)
+		if (page[id].word[i]->blocked == 1)
 		{
 			return 0;
 		}
@@ -140,9 +161,9 @@ int search(char word[2][11], int mode) {
 		WORD* wd = findWord(strToLL(word[0]));
 		if (!wd) { return 0; }
 
-		for (WORD* pp = wd; pp != NULL; pp = pp->prev)
+		for (NODE* pp = wd->head; pp != NULL; pp = pp->prev)
 		{
-			if (isBlockOrRemoved(pp->page))
+			if (isBlockOrRemoved(pp->id))
 			{
 				cnt++;
 			}
@@ -150,50 +171,55 @@ int search(char word[2][11], int mode) {
 	}
 	else
 	{
-		if (mode == 1) // and ¿¬»ê
+		if (mode == 1) // and Â¿Â¬Â»Ãª
 		{
 			WORD* wd1 = findWord(strToLL(word[0]));
 			WORD* wd2 = findWord(strToLL(word[1]));
-			if (!wd1) { return 0; }
+			if (!wd1 || !wd2) { return 0; }
 
-			for (WORD* pp = wd1; pp != NULL; pp = pp->prev)
+			for (NODE* pp = wd1->head; pp != NULL; pp = pp->prev)
 			{
-				if (isBlockOrRemoved(pp->page))
+				if (isBlockOrRemoved(pp->id))
 				{
-					searchCount[pp->page->id] = searchCountNum;
+					searchCount[pp->id] = searchCountNum;
 				}
 			}
-			if (!wd2) { return 0; }
 
-			for (WORD* pp = wd2; pp != NULL; pp = pp->prev)
+			for (NODE* pp = wd2->head; pp != NULL; pp = pp->prev)
 			{
-				if (searchCount[pp->page->id] == searchCountNum)
+				if (searchCount[pp->id] == searchCountNum)
 				{
 					cnt++;
 				}
 			}
 
 		}
-		else //mode = 2, or¿¬»ê
+		else //mode = 2, orÂ¿Â¬Â»Ãª
 		{
 			WORD* wd1 = findWord(strToLL(word[0]));
 			WORD* wd2 = findWord(strToLL(word[1]));
 			if (!wd1 && !wd2) { return 0; }
 
-			for (WORD* pp = wd1; pp != NULL; pp = pp->prev)
+			if (wd1)
 			{
-				if (isBlockOrRemoved(pp->page))
+				for (NODE* pp = wd1->head; pp != NULL; pp = pp->prev)
 				{
-					searchCount[pp->page->id] = searchCountNum;
-					cnt++;
+					if (isBlockOrRemoved(pp->id))
+					{
+						searchCount[pp->id] = searchCountNum;
+						cnt++;
+					}
 				}
 			}
 
-			for (WORD* pp = wd2; pp != NULL; pp = pp->prev)
+			if (wd2)
 			{
-				if (isBlockOrRemoved(pp->page) && searchCount[pp->page->id] != searchCountNum)
+				for (NODE* pp = wd2->head; pp != NULL; pp = pp->prev)
 				{
-					cnt++;
+					if (isBlockOrRemoved(pp->id) && searchCount[pp->id] != searchCountNum)
+					{
+						cnt++;
+					}
 				}
 			}
 		}
