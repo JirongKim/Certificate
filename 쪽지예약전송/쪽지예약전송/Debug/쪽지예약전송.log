@@ -1,0 +1,6 @@
+﻿  user.cpp
+D:\Professional\쪽지예약전송\쪽지예약전송\user.cpp(156,35): warning C4018: '>': signed 또는 unsigned가 일치하지 않습니다.
+D:\Professional\쪽지예약전송\쪽지예약전송\user.cpp(184,35): warning C4018: '>': signed 또는 unsigned가 일치하지 않습니다.
+D:\Professional\쪽지예약전송\쪽지예약전송\user.cpp(204,35): warning C4018: '>': signed 또는 unsigned가 일치하지 않습니다.
+D:\Professional\쪽지예약전송\쪽지예약전송\user.cpp(214,18): warning C4018: '>': signed 또는 unsigned가 일치하지 않습니다.
+  쪽지예약전송.vcxproj -> D:\Professional\쪽지예약전송\Debug\쪽지예약전송.exe
