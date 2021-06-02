@@ -77,7 +77,37 @@
 //	minR = minC = MAX_RC;
 //	maxR = maxC = -1;
 //
-//	for (register int i = 0; i < cnt; i++)
+//	//for (register int i = 0; i < cnt; i++)
+//	//{
+//	//	register int r = rs[i];
+//	//	register int c = cs[i];
+//	//	if (tb[r][c].head != NULL)
+//	//	{
+//	//		if (!CHECKDIV(r, c)) // 병합이 되어있으면?
+//	//		{
+//	//			if (minR > tb[r][c].head->R) { minR = tb[r][c].head->R; }
+//	//			if (maxR < tb[r][c].head->eR) { maxR = tb[r][c].head->eR; }
+//	//			if (minC > tb[r][c].head->C) { minC = tb[r][c].head->C; }
+//	//			if (maxC < tb[r][c].head->eC) { maxC = tb[r][c].head->eC; }
+//	//			continue;
+//	//		}
+//	//	}
+//	//	if (minR > tb[r][c].R) { minR = tb[r][c].R; }
+//	//	if (maxR < tb[r][c].eR) { maxR = tb[r][c].eR; }
+//	//	if (minC > tb[r][c].C) { minC = tb[r][c].C; }
+//	//	if (maxC < tb[r][c].eC) { maxC = tb[r][c].eC; }
+//	//}
+//
+//	bool temp[MAX_RC][MAX_RC] = { 0, };
+//	/*for (register int i = 0; i < MAX_RC; i++)
+//	{
+//		for (register int j = 0; j < MAX_RC; j++)
+//		{
+//			temp[i][j] = 0;
+//		}
+//	}*/
+//
+//	for (int i = 0; i < cnt; i++)
 //	{
 //		register int r = rs[i];
 //		register int c = cs[i];
@@ -87,34 +117,12 @@
 //			if (maxR < tb[r][c].head->eR) { maxR = tb[r][c].head->eR; }
 //			if (minC > tb[r][c].head->C) { minC = tb[r][c].head->C; }
 //			if (maxC < tb[r][c].head->eC) { maxC = tb[r][c].head->eC; }
-//			continue;
-//		}
-//		if (minR > tb[r][c].R) { minR = tb[r][c].R; }
-//		if (maxR < tb[r][c].eR) { maxR = tb[r][c].eR; }
-//		if (minC > tb[r][c].C) { minC = tb[r][c].C; }
-//		if (maxC < tb[r][c].eC) { maxC = tb[r][c].eC; }
-//	}
 //
-//	bool temp[MAX_RC][MAX_RC];
-//	for (register int i = 0; i <= maxR - minR; i++)
-//	{
-//		for (register int j = 0; j <= maxC - minC; j++)
-//		{
-//			temp[i][j] = 0;
-//		}
-//	}
-//
-//	for (int i = 0; i < cnt; i++)
-//	{
-//		register int r = rs[i];
-//		register int c = cs[i];
-//		if (tb[r][c].head != NULL)
-//		{
 //			for (register int k = tb[r][c].head->R; k <= tb[r][c].head->eR; k++)
 //			{
-//				for (int l = tb[r][c].head->C; l <= tb[r][c].head->eC; l++)
+//				for (register int l = tb[r][c].head->C; l <= tb[r][c].head->eC; l++)
 //				{
-//					temp[k - minR][l - minC] = !temp[k - minR][l - minC];
+//					temp[k][l] = !temp[k][l];
 //				}
 //			}
 //			continue;
@@ -123,15 +131,19 @@
 //		{
 //			for (register int l = tb[r][c].C; l <= tb[r][c].eC; l++)
 //			{
-//				temp[k - minR][l - minC] = !temp[k - minR][l - minC];
+//				temp[k][l] = !temp[k][l];
 //			}
 //		}
+//		if (minR > tb[r][c].R) { minR = tb[r][c].R; }
+//		if (maxR < tb[r][c].eR) { maxR = tb[r][c].eR; }
+//		if (minC > tb[r][c].C) { minC = tb[r][c].C; }
+//		if (maxC < tb[r][c].eC) { maxC = tb[r][c].eC; }
 //	}
 //
 //	int flag = 0;
-//	for (register int i = 0; i <= maxR - minR; i++)
+//	for (register int i = minR; i <= maxR; i++)
 //	{
-//		for (register int j = 0; j <= maxC - minC; j++)
+//		for (register int j = minC; j <= maxC; j++)
 //		{
 //			if (temp[i][j] == 0) { flag = 1; break; }
 //		}
