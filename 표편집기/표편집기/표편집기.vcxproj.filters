@@ -27,5 +27,8 @@
     <ClCompile Include="answer.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="user3.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
