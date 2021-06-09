@@ -24,6 +24,7 @@
     <ProjectGuid>{c208d3c5-3654-466f-8fc3-49c2498072f8}</ProjectGuid>
     <RootNamespace>뉴스피드</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>뉴스피드2</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -139,9 +140,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="answer1.cpp" />
+    <ClCompile Include="answer2.cpp" />
+    <ClCompile Include="answer3.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="user.cpp" />
     <ClCompile Include="user2.cpp" />
+    <ClCompile Include="user3.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -66,14 +66,14 @@
 //int getList(int mUserId, int mList[])
 //{
 //	NEWS list[11];
-//	int lnum = 0;
-//	for (int i = 0; i < 11; i++) { list[i].score = 0; }
+//	register int lnum = 0;
+//	for (register int i = 0; i < 11; i++) { list[i].score = 0; }
 //
-//	for (int i = 0; i < MAX_SEC; i++)
+//	for (register int i = 0; i < MAX_SEC; i++)
 //	{
-//		for (int j = 0; j < snum[i]; j++)
+//		for (register int j = 0; j < snum[i]; j++)
 //		{
-//			int t = sec[i][j];
+//			register int t = sec[i][j];
 //			if (news[t].isDeleted == 1) { continue; }
 //
 //			NEWS temp;
@@ -87,30 +87,28 @@
 //			}
 //			temp.id = news[t].id;
 //
-//			int k;
-//			for (k = 0; k < 11; k++)
+//			if (temp.score < list[9].score) { continue; }
+//
+//			register int k;
+//			for (k = 9; k > 0; k--)
 //			{
-//				if (temp.score >= list[k].score)
+//				if (temp.score <= list[k - 1].score)
 //				{
 //					if (temp.score == list[k].score && temp.id < list[k].id) { continue; }
-//					for (int l = lnum++; l > k; l--)
-//					{
-//						list[l] = list[l - 1];
-//					}
-//					list[k] = temp;
-//
-//					if (lnum == 11) { lnum = 10; }
 //					break;
 //				}
-//				else
-//				{
-//					continue;
-//				}
+//				list[k] = list[k - 1];
+//			}
+//			list[k] = temp;
+//			lnum++;
+//			if (lnum == 11)
+//			{
+//				lnum = 10;
 //			}
 //		}
 //	}
 //
-//	for (int i = 0; i < lnum; i++)
+//	for (register int i = 0; i < lnum; i++)
 //	{
 //		mList[i] = list[i].id;
 //	}
