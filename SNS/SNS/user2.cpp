@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <algorithm>
 
 #define MAX_USER      1000
 #define MAX_TAG       5000
@@ -28,6 +29,10 @@ struct HASH
 	int tnum;
 } hTable[MAX_TABLE];
 
+bool compare(const MSG& p1, const MSG& p2) {
+	return p1.score > p2.score;
+}
+
 void init()
 {
 	arr_idx = 0;
@@ -52,13 +57,13 @@ void createMessage(int msgID, int userID, char msgData[])
 		(msgData[4] - '0') * 100 + (msgData[3] - '0') * 1000 +
 		(msgData[1] - '0') * 10000 + (msgData[0] - '0') * 100000;
 
-	int score = time << 10 + (MAX_USER - userID);
+	int score = (time << 10) + (MAX_USER - userID);
 
 	MSG* newMsg = myalloc();
 	newMsg->score = score;
 	newMsg->mid = msgID;
 
-	if (user_cnt[userID] == 0)
+	/*if (user_cnt[userID] == 0)
 	{
 		user[userID][0].score = score;
 		user[userID][0].mid = msgID;
@@ -79,7 +84,16 @@ void createMessage(int msgID, int userID, char msgData[])
 				break;
 			}
 		}
+	}*/
+
+	user[userID][user_cnt[userID]].score = score;
+	user[userID][user_cnt[userID]].mid = msgID;
+	user_cnt[userID]++;
+	if (user_cnt[userID] == 6)
+	{
+		user_cnt[userID] = 5;
 	}
+	std::sort(user[userID], user[userID] + user_cnt[userID], compare);
 
 	int sp = 9;
 	while (1)
@@ -110,7 +124,9 @@ void createMessage(int msgID, int userID, char msgData[])
 
 		hTable[key].val = str;
 		
-		if (hTable[key].tnum == 0)
+
+
+		/*if (hTable[key].tnum == 0)
 		{
 			hTable[key].top_score[0] = score;
 			hTable[key].top_mid[0] = msgID;
@@ -132,7 +148,7 @@ void createMessage(int msgID, int userID, char msgData[])
 					break;
 				}
 			}
-		}
+		}*/
 
 		sp++; //\0에서 #으로 가기위한 +
 	}
@@ -164,10 +180,15 @@ int searchByHashtag(char tagName[], int retIDs[])
 		key++;
 		key = key % MAX_TABLE;
 		nc++;
-		if (nc > MAX_TABLE) { break; }
+		if (nc > MAX_TABLE) { return 0; }
 	}
 
 	printf("HashTag Result : \n");
+	if (hTable[key].tnum > 5)
+	{
+		hTable[key].tnum = 5;
+	}
+
 	for (int i = 0; i < hTable[key].tnum; i++)
 	{
 		retIDs[i] = hTable[key].top_mid[i];
@@ -175,19 +196,50 @@ int searchByHashtag(char tagName[], int retIDs[])
 	}
 	printf("\n");
 
-	return hTable[key].tnum;
+ 	return hTable[key].tnum;
 }
 
 int getMessages(int userID, int retIDs[])
 {
+	MSG top5[7] = { 0, };
+	int tnum = 0;
+	int k = 0;
 	printf("UserID Result : \n");
 	for (int i = 0; i < follow_cnt[userID]; i++)
 	{
 		int t = follow[userID][i];
 		for (int j = 0; j < user_cnt[t]; j++)
 		{
-			printf("%d \n", user[t][j].mid);
+			top5[tnum].mid = user[t][j].mid;
+			top5[tnum++].score = user[t][j].score;
+			std::sort(top5, top5 + tnum, compare);
+			if (tnum == 6)
+			{
+				tnum = 5;
+			}
+			//if (tnum == 5 && user[t][j].score > top5[tnum - 1].score) { continue; }
+			//if (tnum == 0) { top5[0].mid = user[t][j].mid, top5[0].score = user[t][j].score; tnum++; continue; }
+			//for (k = tnum - 1; k >= 0; k--) // 5에서 1까지.
+			//{
+			//	top5[k + 1].mid = top5[k].mid;
+			//	top5[k + 1].score = top5[k].score;
+			//	if (user[t][j].score < top5[k].score)
+			//	{
+			//		top5[k].mid = user[t][j].mid;
+			//		top5[k].score = user[t][j].score;
+			//		tnum++;
+			//		if (tnum == 6) { tnum = 5; }
+			//		break;
+			//	}
+			//}
+
 		}
+	}
+
+	for (int i = 0; i < tnum; i++)
+	{
+		retIDs[i] = top5[i].mid;
+		printf("%d \n", top5[i].mid);
 	}
 	printf("\n");
 	return 0;
