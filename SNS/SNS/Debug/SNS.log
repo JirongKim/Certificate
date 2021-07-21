@@ -1,10 +1,3 @@
 ﻿C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(519,5): warning MSB8028: 중간 디렉터리(Debug\)에 다른 프로젝트(SNS.vcxproj)에서 공유하는 파일이 포함되어 있습니다.  이로 인해 잘못된 정리 및 다시 빌드 동작이 수행될 수 있습니다.
-  user2.cpp
   user3.cpp
-  코드를 생성하고 있습니다...
-main.obj : error LNK2019: "void __cdecl init(void)" (?init@@YAXXZ)"int __cdecl run(int,int)" (?run@@YAHHH@Z) 함수에서 참조되는 확인할 수 없는 외부 기호
-main.obj : error LNK2019: "void __cdecl createMessage(int,int,char * const)" (?createMessage@@YAXHHQAD@Z)"void __cdecl create_msg(void)" (?create_msg@@YAXXZ) 함수에서 참조되는 확인할 수 없는 외부 기호
-main.obj : error LNK2019: "void __cdecl followUser(int,int)" (?followUser@@YAXHH@Z)"int __cdecl run(int,int)" (?run@@YAHHH@Z) 함수에서 참조되는 확인할 수 없는 외부 기호
-main.obj : error LNK2019: "int __cdecl searchByHashtag(char * const,int * const)" (?searchByHashtag@@YAHQADQAH@Z)"int __cdecl run(int,int)" (?run@@YAHHH@Z) 함수에서 참조되는 확인할 수 없는 외부 기호
-main.obj : error LNK2019: "int __cdecl getMessages(int,int * const)" (?getMessages@@YAHHQAH@Z)"int __cdecl run(int,int)" (?run@@YAHHH@Z) 함수에서 참조되는 확인할 수 없는 외부 기호
-D:\Professional\SNS\Debug\SNS2.exe : fatal error LNK1120: 5개의 확인할 수 없는 외부 참조입니다.
+  SNS.vcxproj -> D:\Professional\SNS\Debug\SNS2.exe
