@@ -1,9 +1,13 @@
+#include <stdio.h>
+
 #define MAX_GROUP 100
 #define MAX_ID 1000
 #define MAX_USER 100
 #define MAX_DIF_NAME 200
 #define MAX_SAME_NAME 5
 #define MAX_NAME 15
+
+#define rint register int
 
 void mstrcpy(char dst[], const char src[]) {
 	int c = 0;
@@ -19,18 +23,18 @@ int mstrcmp(const char str1[], const char str2[]) {
 struct EVENT
 {
 	char ename[MAX_NAME];
-	int eventUid_cnt;
-	int eventUid[MAX_SAME_NAME];
-} eventName[MAX_GROUP][MAX_DIF_NAME];
+	int n;
+	int slave[MAX_SAME_NAME];
+} group[MAX_GROUP][MAX_DIF_NAME];
 
-int event_cnt[MAX_GROUP];
+int group_cnt[MAX_GROUP];
 
-struct USER
+struct NODE
 {
 	char ename[MAX_NAME];
 	int groupID;
+	EVENT* g;
 } user[MAX_ID][MAX_USER];
-
 int user_cnt[MAX_ID];
 
 void init()
@@ -39,170 +43,135 @@ void init()
 	{
 		for (int j = 0; j < MAX_DIF_NAME; j++)
 		{
-			eventName[i][j].eventUid_cnt = 0;
-			for (int k = 0; k < MAX_SAME_NAME; k++)
-			{
-				eventName[i][j].eventUid[k] = 0;
-			}
+			group[i][j].n = 0;
 		}
+		group_cnt[i] = 0;
 	}
 	for (int i = 0; i < MAX_ID; i++)
 	{
 		user_cnt[i] = 0;
 	}
-	for (int i = 0; i < MAX_GROUP; i++)
-	{
-		event_cnt[i] = 0;
-	}
 }
 
 void addEvent(int uid, char ename[], int groupid)
 {
-	bool same = 0;
-	for (int i = 0; i < event_cnt[groupid]; i++)
+	mstrcpy(user[uid][user_cnt[uid]].ename, ename);
+	user[uid][user_cnt[uid]].groupID = groupid;
+
+
+	int flag = 0;
+	for (rint i = 0; i < group_cnt[groupid]; i++)
 	{
-		EVENT* temp = &eventName[groupid][i];
-		if (!mstrcmp(temp->ename, ename))
+		if (!mstrcmp(group[groupid][i].ename, ename))
 		{
-			temp->eventUid[temp->eventUid_cnt++] = uid;
-			same = 1;
+			group[groupid][i].slave[group[groupid][i].n++] = uid;
+			user[uid][user_cnt[uid]].g = &group[groupid][i];
+			flag = 1;
 			break;
 		}
 	}
-	
-	mstrcpy(user[uid][user_cnt[uid]].ename, ename);
-	user[uid][user_cnt[uid]++].groupID = groupid;
-
-	if (same == 0)
+	if (flag == 0)
 	{
-		EVENT* temp = &eventName[groupid][event_cnt[groupid]];
-		mstrcpy(temp->ename, ename);
-		temp->eventUid[0] = uid;
-		temp->eventUid_cnt = 1;
-		event_cnt[groupid]++;
+		mstrcpy(group[groupid][group_cnt[groupid]].ename, ename);
+		group[groupid][group_cnt[groupid]].slave[0] = uid;
+		group[groupid][group_cnt[groupid]].n = 1;
+		user[uid][user_cnt[uid]].g = &group[groupid][group_cnt[groupid]];
+		group_cnt[groupid]++;
 	}
+	user_cnt[uid]++;
+}
+
+void swap_user(int uid, int i, int j)
+{
+	user[uid][i] = user[uid][j];
+}
+
+void swap_group(int groupid, EVENT* p)
+{	
+	*p = group[groupid][--group_cnt[groupid]];
 }
 
 int deleteEvent(int uid, char ename[])
 {
-	int cnt = 1;
-	bool same = 0;
-	int groupID = 0;
-	for (int i = 0; i < user_cnt[uid]; i++)
+	for (rint i = 0; i < user_cnt[uid]; i++)
 	{
 		if (!mstrcmp(user[uid][i].ename, ename))
 		{
-			same = 1;
-			groupID = user[uid][i].groupID;
-			USER temp = user[uid][user_cnt[uid] - 1];
-
-			user[uid][i].groupID = temp.groupID;
-			mstrcpy(user[uid][i].ename, temp.ename);
-			user_cnt[uid]--;
-			break;
-		}
-	}
-	if (same == 0) { return 0; }
-	
-	bool master = 0;
-	for (int i = 0; i < event_cnt[groupID]; i++)
-	{
-		if (!mstrcmp(eventName[groupID][i].ename, ename))
-		{
-			EVENT* origin = &eventName[groupID][event_cnt[groupID] - 1];
-			EVENT* temp = &eventName[groupID][i];
-
-			if (temp->eventUid[0] == uid && temp->eventUid_cnt != 0) { master = 1; }
-			else { master = 0; }
-
-			if (master == 1)
+			if (user[uid][i].g->slave[0] == uid)
 			{
-				cnt = temp->eventUid_cnt;
-				mstrcpy(temp->ename, origin->ename);
-				for (int j = 0; j < MAX_SAME_NAME; j++)
-				{
-					temp->eventUid[j] = origin->eventUid[j];
-					origin->eventUid[j] = 0;
-				}
-				temp->eventUid_cnt = origin->eventUid_cnt;
-				origin->eventUid_cnt = 0;
-				event_cnt[groupID]--;
+				int temp = user[uid][i].g->n;
+				int groupid = user[uid][i].groupID;
+
+				swap_group(groupid, user[uid][i].g);
+				swap_user(uid, i, --user_cnt[uid]);
+				return temp;
 			}
 			else
 			{
-				for (int j = 0; j < temp->eventUid_cnt; j++)
+				for (rint j = 1; j < user[uid][i].g->n; j++)
 				{
-					if (temp->eventUid[j] == uid)
+					if (user[uid][i].g->slave[j] == uid)
 					{
-						temp->eventUid[j] = temp->eventUid[temp->eventUid_cnt - 1];
-						temp->eventUid_cnt--;
-						break;
+						user[uid][i].g->n--;
+						user[uid][i].g->slave[j] = user[uid][j].g->slave[user[uid][i].g->n];
+
+						swap_user(uid, i, user_cnt[uid]--);
+						return 1;
 					}
 				}
 			}
-			break;
 		}
 	}
-
-	return cnt;
+	return 0;
 }
 
 int changeEvent(int uid, char ename[], char cname[])
 {
 	int cnt = 1;
-	int same = 0;
-	int groupID = 0;
+	int groupid = 0;
 	for (int i = 0; i < user_cnt[uid]; i++)
 	{
 		if (!mstrcmp(user[uid][i].ename, ename))
 		{
-			same = 1;
-			groupID = user[uid][i].groupID;
-			mstrcpy(user[uid][i].ename, cname);
-			break;
+			if (user[uid][i].g->slave[0] == uid)
+			{
+				int temp = user[uid][i].g->n;
+				mstrcpy(user[uid][i].g->ename, cname);
+				mstrcpy(user[uid][i].ename, cname);
+				return temp;
+			}
 		}
-	}
-	if (same == 0) { return 0; }
-
-	bool master = 0;
-	for (int i = 0; i < event_cnt[groupID]; i++)
-	{
-		EVENT* temp = &eventName[groupID][i];
-		if (!mstrcmp(temp->ename, ename))
+		else
 		{
-			if (temp->eventUid[0] == uid && temp->eventUid_cnt != 0) { master = 1; }
-			else { master = 0; }
-
-			if (master == 1)
+			for (rint j = 1; j < user[uid][i].g->n; j++)
 			{
-				cnt = temp->eventUid_cnt;
-				mstrcpy(temp->ename, cname);
-			}
-			else
-			{
-				same = -1;
-				for (int j = 0; j < event_cnt[groupID]; j++)
+				if (user[uid][i].g->slave[j] == uid)
 				{
-					if (!mstrcmp(eventName[groupID][j].ename, cname)) {
-						same = j;
-						break;
+					mstrcpy(user[uid][i].ename, cname);
+					groupid = user[uid][i].groupID;
+					user[uid][i].g->n--;
+					user[uid][i].g->slave[j] = user[uid][j].g->slave[user[uid][i].g->n];
+
+					///////
+					for (int k = 0; k < group_cnt[groupid]; k++)
+					{
+						if (!mstrcmp(group[groupid][k].ename, cname))
+						{
+							user[uid][i].g = &group[groupid][k];
+							group[groupid][k].slave[group[groupid][k].n++] = group[groupid][k].slave[0];
+							group[groupid][k].slave[0] = uid;
+							return 1;
+						}
 					}
-				}
+					mstrcpy(group[groupid][group_cnt[groupid]].ename, cname);
+					group[groupid][group_cnt[groupid]].slave[0] = uid;
+					group[groupid][group_cnt[groupid]].n = 1;
+					user[uid][i].g = &group[groupid][group_cnt[groupid]];
+					group_cnt[groupid]++;
 
-				if (same == -1)
-				{
-					mstrcpy(eventName[groupID][event_cnt[groupID]].ename, cname);
-					eventName[groupID][event_cnt[groupID]].eventUid[0] = uid;
-					eventName[groupID][event_cnt[groupID]++].eventUid_cnt = 1;
-				}
-				else
-				{
-					cnt = 2;
-					eventName[groupID][same].eventUid[eventName[groupID][same].eventUid_cnt++] = eventName[groupID][same].eventUid[0];
-					eventName[groupID][same].eventUid[0] = uid;
+					return 1;
 				}
 			}
-			break;
 		}
 	}
 
