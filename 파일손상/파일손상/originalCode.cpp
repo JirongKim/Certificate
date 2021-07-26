@@ -1,9 +1,10 @@
-//#include <stdio.h>
+ï»¿//#include <stdio.h>
 //
 //#define NULL 0
-//#define MAX_TABLE 50007
+//#define MAX_TABLE 30007
 //#define hash(id) (id % MAX_TABLE)
 //#define ROOT 10000
+//#define R register
 //
 //struct DIR
 //{
@@ -42,12 +43,12 @@
 //	arr_idx = 0;
 //	fileCount = 0;
 //
-//	for (int i = 0; i < MAX_TABLE; i++)
+//	for (R int i = 0; i < MAX_TABLE; i++)
 //	{
 //		dirTable[i] = NULL;
 //	}
 //
-//	DIR* root = myalloc();
+//	R DIR* root = myalloc();
 //	root->id = ROOT;
 //
 //	dirTable[ROOT] = root;
@@ -55,7 +56,7 @@
 //
 //DIR* findPath(int ID)
 //{
-//	int key = hash(ID);
+//	R int key = hash(ID);
 //
 //	while (1)
 //	{
@@ -72,13 +73,13 @@
 //
 //DIR* makePath(int ID)
 //{
-//	int key = hash(ID);
+//	R int key = hash(ID);
 //
 //	while (1)
 //	{
 //		if (dirTable[key] == NULL)
 //		{
-//			DIR* newDir = myalloc();
+//			R DIR* newDir = myalloc();
 //			newDir->id = ID;
 //			dirTable[key] = newDir;
 //			break;
@@ -107,19 +108,11 @@
 //	countDescendant(cur->parent, adder);
 //}
 //
-//void countDescendant_virus(DIR* cur, int adder)
-//{
-//	cur->virus += adder;
-//	if (cur->id == ROOT) { return; }
-//
-//	countDescendant_virus(cur->parent, adder);
-//}
-//
 //int cmdAdd(int newID, int pID, int fileSize) {
 //	if (fileSize != 0) { fileCount++; }
 //
-//	DIR* newDir = makePath(newID);
-//	DIR* pDir = findPath(pID);
+//	R DIR* newDir = makePath(newID);
+//	R DIR* pDir = findPath(pID);
 //	newDir->fileSize = fileSize;
 //
 //	addChild(pDir, newDir);
@@ -129,10 +122,8 @@
 //
 //void deleteDir(DIR* par, DIR* chi)
 //{
-//	countDescendant(par, -chi->num_descendant);
-//	countDescendant_virus(par, -chi->virus);
-//	DIR* temp = NULL;
-//	for (DIR* p = par->child; p != NULL; temp = p, p = p->prev)
+//	R DIR* temp = NULL;
+//	for (R DIR* p = par->child; p != NULL; temp = p, p = p->prev)
 //	{
 //		if (p->id == chi->id)
 //		{
@@ -147,68 +138,62 @@
 //			break;
 //		}
 //	}
-//	if (chi->fileSize != 0)
-//	{
-//		par->childNum--;
-//	}
+//	par->childNum--;
 //	chi->parent = NULL;
+//	countDescendant(par, -chi->num_descendant);
 //}
 //
 //int cmdMove(int tID, int pID) {
-//	DIR* tDir = findPath(tID);
-//	DIR* pDir = findPath(pID);
+//	R DIR* tDir = findPath(tID);
+//	R DIR* pDir = findPath(pID);
 //
 //	deleteDir(tDir->parent, tDir);
 //	addChild(pDir, tDir);
 //	countDescendant(pDir, tDir->num_descendant);
-//	countDescendant_virus(pDir, tDir->virus);
 //	return pDir->num_descendant;
 //}
 //
 //int loopInfect(int tID)
 //{
-//	DIR* tDir = findPath(tID);
+//	R DIR* tDir = findPath(tID);
 //
 //	if (tDir->fileSize == 0)
 //	{
-//		for (DIR* p = tDir->child; p != NULL; p = p->prev)
+//		for (R DIR* p = tDir->child; p != NULL; p = p->prev)
 //		{
 //			loopInfect(p->id);
 //		}
 //	}
-//	// Æú´õ°¡ ¾Æ´Ï¸é ÆÄÀÏ.
+//	// Ã†ÃºÂ´ÃµÂ°Â¡ Â¾Ã†Â´ÃÂ¸Ã© Ã†Ã„Ã€Ã.
 //	else
 //	{
 //		countDescendant(tDir, v);
-//		countDescendant_virus(tDir, v);
 //	}
+//	tDir->isVirus = 1;
+//	tDir->virus += v;
 //	return tDir->num_descendant;
 //}
 //
 //int cmdInfect(int tID) {
-//	if (fileCount == 0)
-//	{
-//		return 0;
-//	}
+//	if (fileCount == 0) { return 0; }
 //	if (fileCount) { v = (dir[0].num_descendant / fileCount); }
 //
-//	int result = loopInfect(tID);
+//	R int result = loopInfect(tID);
 //	return result;
 //}
 //
 //int cmdRecover(int tID) {
-//	DIR* tDir = findPath(tID);
+//	R DIR* tDir = findPath(tID);
 //
 //	if (tDir->fileSize != 0)
 //	{
+//		tDir->isVirus = 0;
 //		countDescendant(tDir, -tDir->virus);
-//		countDescendant_virus(tDir, -tDir->virus);
-//
 //		tDir->virus = 0;
 //	}
 //	else
 //	{
-//		for (DIR* p = tDir->child; p != NULL; p = p->prev)
+//		for (R DIR* p = tDir->child; p != NULL; p = p->prev)
 //		{
 //			cmdRecover(p->id);
 //		}
@@ -217,14 +202,14 @@
 //	return tDir->num_descendant;
 //}
 //
-//int cnt = 0;
+//int cnt;
 //void getFileCount(DIR* tDir)
 //{
 //	if (tDir->fileSize != 0)
 //	{
 //		cnt++;
 //	}
-//	for (DIR* p = tDir->child; p != NULL; p = p->prev)
+//	for (R DIR* p = tDir->child; p != NULL; p = p->prev)
 //	{
 //		getFileCount(p);
 //	}
@@ -244,7 +229,7 @@
 //		dir[0].prev = NULL;
 //		return 0;
 //	}
-//	DIR* tDir = findPath(tID);
+//	R DIR* tDir = findPath(tID);
 //
 //	deleteDir(tDir->parent, tDir);
 //	cnt = 0;
