@@ -13,7 +13,6 @@ struct DIR
 	int virus;
 	int fileSize;
 	int childNum;
-	int isVirus;
 	DIR* parent;
 	DIR* child;
 	DIR* prev;
@@ -26,7 +25,6 @@ DIR* myalloc(void) {
 	dir[arr_idx].virus = 0;
 	dir[arr_idx].fileSize = 0;
 	dir[arr_idx].childNum = 0;
-	dir[arr_idx].isVirus = 0;
 	dir[arr_idx].parent = NULL;
 	dir[arr_idx].child = NULL;
 	dir[arr_idx].prev = NULL;
@@ -35,13 +33,11 @@ DIR* myalloc(void) {
 
 DIR* dirTable[MAX_TABLE];
 
-int fileCount;
 int v;
 
 void init() {
 	v = 0;
 	arr_idx = 0;
-	fileCount = 0;
 
 	for (R int i = 0; i < MAX_TABLE; i++)
 	{
@@ -96,27 +92,27 @@ void addChild(DIR* par, DIR* ch)
 	ch->parent = par;
 	ch->prev = par->child;
 	par->child = ch;
-	if (ch->fileSize != 0) { par->childNum++; }
 	return;
 }
 
-void countDescendant(DIR* cur, int adder)
+void countDescendant(DIR* cur, int adder, int childAdder, int virusAdder)
 {
-	cur->num_descendant += adder;
+	if (cur == NULL) { return; }
+	if (adder) { cur->num_descendant += adder; }
+	if (childAdder) { cur->childNum += childAdder; }
+	if (virusAdder) { cur->virus += virusAdder; }
 	if (cur->id == ROOT) { return; }
 
-	countDescendant(cur->parent, adder);
+	countDescendant(cur->parent, adder, childAdder, virusAdder);
 }
 
 int cmdAdd(int newID, int pID, int fileSize) {
-	if (fileSize != 0) { fileCount++; }
-
 	R DIR* newDir = makePath(newID);
 	R DIR* pDir = findPath(pID);
 	newDir->fileSize = fileSize;
 
 	addChild(pDir, newDir);
-	countDescendant(newDir, fileSize);
+	countDescendant(newDir, fileSize, fileSize ? 1 : 0, 0);
 	return pDir->num_descendant;
 }
 
@@ -138,9 +134,8 @@ void deleteDir(DIR* par, DIR* chi)
 			break;
 		}
 	}
-	par->childNum--;
 	chi->parent = NULL;
-	countDescendant(par, -chi->num_descendant);
+	countDescendant(par, -chi->num_descendant, -chi->childNum, -chi->virus);
 }
 
 int cmdMove(int tID, int pID) {
@@ -149,21 +144,8 @@ int cmdMove(int tID, int pID) {
 
 	deleteDir(tDir->parent, tDir);
 	addChild(pDir, tDir);
-	countDescendant(pDir, tDir->num_descendant);
+	countDescendant(pDir, tDir->num_descendant, tDir->childNum, tDir->virus);
 	return pDir->num_descendant;
-}
-
-int cnt;
-void getFileCount(DIR* tDir)
-{
-	if (tDir->fileSize != 0)
-	{
-		cnt++;
-	}
-	for (R DIR* p = tDir->child; p != NULL; p = p->prev)
-	{
-		getFileCount(p);
-	}
 }
 
 void loopInfect(DIR* tDir)
@@ -176,39 +158,31 @@ void loopInfect(DIR* tDir)
 		}
 	}
 	tDir->virus += v * tDir->childNum;
+	tDir->num_descendant += v * tDir->childNum;
 	return;
 }
 
 int cmdInfect(int tID) {
-	if (fileCount == 0) { return 0; }
-	if (fileCount) { v = (dir[0].num_descendant / fileCount); }
+	if (dir[0].childNum == 0) { return 0; }
+	else { v = (dir[0].num_descendant / dir[0].childNum); }
 
 	DIR* tDir = findPath(tID);
 	loopInfect(tDir);
-	//1. 각 파일에 접근하면, 하위 파일(전부)이 몇개인지 알아야함
-	// 현재는 바로 하위파일의 개수만 알고있음.
-	//2. 그렇게 하위파일의 개수를 전부 알 수 있으면,
-	// virus를 걸릴 때 각각 하위파일 X v 만큼만 virus를 더하면 됨.
-	// virus만 따로 더하려면 countDescendant를 바꿔야할듯.
-	countDescendant(tDir->parent, tDir->virus);
+	countDescendant(tDir->parent, tDir->childNum * v, 0, tDir->childNum * v);
 	return tDir->num_descendant;
 }
 
 int loopRecover(DIR* tDir)
 {
-	if (tDir->fileSize != 0)
-	{
-		tDir->isVirus = 0;
-		countDescendant(tDir, -tDir->virus);
-		tDir->virus = 0;
-	}
-	else
+	if (tDir->fileSize == 0)
 	{
 		for (R DIR* p = tDir->child; p != NULL; p = p->prev)
 		{
 			loopRecover(p);
 		}
 	}
+	tDir->num_descendant -= tDir->virus;
+	tDir->virus = 0;
 
 	return tDir->num_descendant;
 }
@@ -216,7 +190,9 @@ int loopRecover(DIR* tDir)
 int cmdRecover(int tID) {
 	R DIR* tDir = findPath(tID);
 
+	int totalVirus = tDir->virus;
 	loopRecover(tDir);
+	countDescendant(tDir->parent, -totalVirus, 0, -totalVirus);
 
 	return tDir->num_descendant;
 }
@@ -229,7 +205,6 @@ int cmdRemove(int tID) {
 		dir[0].virus = 0;
 		dir[0].fileSize = 0;
 		dir[0].childNum = 0;
-		dir[0].isVirus = 0;
 		dir[0].parent = NULL;
 		dir[0].child = NULL;
 		dir[0].prev = NULL;
@@ -238,10 +213,6 @@ int cmdRemove(int tID) {
 	R DIR* tDir = findPath(tID);
 
 	deleteDir(tDir->parent, tDir);
-	cnt = 0;
-	getFileCount(tDir);
-
-	fileCount -= cnt;
 
 	return tDir->num_descendant;
 }

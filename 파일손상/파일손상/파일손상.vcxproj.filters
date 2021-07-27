@@ -27,10 +27,10 @@
     <ClCompile Include="originalCode.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="user2.cpp">
+    <ClCompile Include="answer2.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="answer2.cpp">
+    <ClCompile Include="user2.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
