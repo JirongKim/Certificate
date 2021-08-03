@@ -24,6 +24,7 @@
     <ProjectGuid>{0cb73beb-c140-43ad-9d9f-8583f4c76e9b}</ProjectGuid>
     <RootNamespace>Directory</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>Directory3</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -144,6 +145,7 @@
     <ClCompile Include="user2.cpp" />
     <ClCompile Include="user3.cpp" />
     <ClCompile Include="user4.cpp" />
+    <ClCompile Include="user5.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
